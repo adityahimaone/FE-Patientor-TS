@@ -1,6 +1,7 @@
 {
   "patients": [
     {
+      "id": 1,
       "name": "John McClane",
       "ssn": "3452534534534",
       "occupation": "New York City",
@@ -8,10 +9,19 @@
       "entries": []
     },
     {
+      "id": 2,
       "name": "Mikaela",
       "ssn": "45348546354543",
       "occupation": "California",
       "gender": "female",
+      "entries": []
+    },
+    {
+      "id": 3,
+      "name": "Anggelo",
+      "ssn": "453453453445",
+      "occupation": "New Jersey",
+      "gender": "male",
       "entries": []
     }
   ]
