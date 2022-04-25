@@ -1,24 +1,42 @@
 import React, { useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { setPatientDetail, useStateValue } from "../state";
+import { useStateValue } from "../state";
+import { setPatientDetail, setDiagnosisList } from "../state/reducer";
 import axios from "axios";
-import { Patient, Gender } from "../types";
+import { Patient, Gender, Entry, Diagnosis, HealthCheckEntry } from "../types";
 import { Male, Female, Transgender } from "@mui/icons-material";
-import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import CardActions from "@mui/material/CardActions";
 import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
 
-export default function PatientDetail() {
+export function PatientDetail() {
   const { id } = useParams<{ id: string }>();
-  const [{ patient }, dispatch] = useStateValue();
+  const [{ patient, diagnosis }, dispatch] = useStateValue();
+
   const fetchPatientDetail = async () => {
     try {
-      const { data: patientDetail } = await axios.get<Patient>(
-        `http://localhost:3001/patients/${id}`
-      );
-      dispatch(setPatientDetail(patientDetail));
+      console.log(id);
+      if (id && id !== patient.id) {
+        const { data: patientDetail } = await axios.get<Patient>(
+          `http://localhost:3001/api/patients/${id}`
+        );
+        console.log(patientDetail, "patientDetail");
+        dispatch(setPatientDetail(patientDetail));
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const fetchDiagnosis = async () => {
+    try {
+      if (diagnosis.length === 0) {
+        const { data: diagnosisList } = await axios.get<Diagnosis[]>(
+          `http://localhost:3001/api/diagnoses`
+        );
+        dispatch(setDiagnosisList(diagnosisList));
+      }
     } catch (error) {
       console.log(error);
     }
@@ -26,12 +44,14 @@ export default function PatientDetail() {
 
   useEffect(() => {
     fetchPatientDetail();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    fetchDiagnosis();
   }, [id]);
 
   return (
     <div>
       <div>
-        <h3>Patient Detail</h3>
+        <h3>Patient Detail TEST</h3>
       </div>
       <div>
         <div>
@@ -53,6 +73,16 @@ export default function PatientDetail() {
               <Typography sx={{ fontSize: 14 }}>
                 occupation: {patient.occupation}
               </Typography>
+              <Typography variant="h6" sx={{ paddingTop: 2 }}>
+                Entries :
+              </Typography>
+              {patient.entries?.map((entry) => (
+                <div key={entry.id}>
+                  <Card sx={{ padding: 1 }}>
+                    <EntryDetails entry={entry} />
+                  </Card>
+                </div>
+              ))}
             </CardContent>
             <CardActions></CardActions>
           </Card>
@@ -61,3 +91,102 @@ export default function PatientDetail() {
     </div>
   );
 }
+
+const EntryDetails: React.FC<{ entry: Entry }> = ({ entry }) => {
+  switch (entry.type) {
+    case "HealthCheck":
+      return <HealthCheckEntryField entry={entry} />;
+    case "Hospital":
+      return <HospitalEntry entry={entry} />;
+    case "OccupationalHealthcare":
+      return <OccupationalHealthcareEntry entry={entry} />;
+    default:
+      return assertNever(entry as never);
+  }
+};
+
+const HealthCheckEntryField: React.FC<{ entry: HealthCheckEntry }> = ({
+  entry,
+}) => {
+  const [{ diagnosis }] = useStateValue();
+  const diagnosisCodes = entry.diagnosisCodes ? entry.diagnosisCodes : [];
+  return (
+    <div>
+      <p>
+        <b>{entry.date} : </b> {entry.description}
+      </p>
+      <ul>
+        {diagnosisCodes.map((diagnosecode) => (
+          <li key={diagnosecode}>
+            {diagnosecode} :{" "}
+            {diagnosis.find((d) => d.code === diagnosecode)?.name}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+const HospitalEntry: React.FC<{ entry: Entry }> = ({ entry }) => {
+  const [{ diagnosis }] = useStateValue();
+  return (
+    <div>
+      <div>
+        <h4>Hospital Entry</h4>
+      </div>
+      <div>
+        <div>
+          <Typography sx={{ fontSize: 14 }}>
+            {entry.date} {entry.description}
+          </Typography>
+        </div>
+        <div>
+          <ul>
+            {entry.diagnosisCodes?.map((diagnosecode) => (
+              <li key={diagnosecode}>
+                {diagnosecode} :{" "}
+                {diagnosis.find((d) => d.code === diagnosecode)?.name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const OccupationalHealthcareEntry: React.FC<{ entry: Entry }> = ({ entry }) => {
+  const [{ diagnosis }] = useStateValue();
+  return (
+    <div>
+      <div>
+        <h4>Occupational Healthcare Entry</h4>
+      </div>
+      <div>
+        <div>
+          <Typography sx={{ fontSize: 14 }}>
+            {entry.date} {entry.description}
+          </Typography>
+        </div>
+        <div>
+          <ul>
+            {entry.diagnosisCodes?.map((diagnosecode) => (
+              <li key={diagnosecode}>
+                {diagnosecode} :{" "}
+                {diagnosis.find((d) => d.code === diagnosecode)?.name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const assertNever = (value: never): never => {
+  throw new Error(
+    `Unhandled discriminated union member: ${JSON.stringify(value)}`
+  );
+};
+
+export default PatientDetail;

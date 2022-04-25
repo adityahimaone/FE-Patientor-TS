@@ -6,12 +6,11 @@ import React, {
   Reducer,
   ReactElement,
 } from "react";
-import { Patient, Gender, Diagnosis } from "../types";
-import { Action } from "./reducer";
-
+import { Patient, Gender, Diagnosis, Action } from "../types";
 export type State = {
   patients: { [id: string]: Patient };
   patient: Patient;
+  diagnosis: Diagnosis[];
 };
 
 const initialState: State = {
@@ -25,6 +24,7 @@ const initialState: State = {
     gender: Gender.Other,
     entries: [],
   },
+  diagnosis: [],
 };
 
 export const StateContext = createContext<[State, Dispatch<Action>]>([

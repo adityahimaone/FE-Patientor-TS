@@ -10,6 +10,16 @@ export enum Gender {
   Other = "other",
 }
 
+export interface Discharge {
+  date: string;
+  criteria: string;
+}
+
+export interface SickLeave {
+  startDate: string;
+  endDate: string;
+}
+
 export interface Patient {
   id: string;
   name: string;
@@ -20,10 +30,6 @@ export interface Patient {
   entries: Array<Entry>;
 }
 
-export type NonSensitivePatient = Omit<Patient, "ssn">;
-
-export type NewPatient = Omit<Patient, "id">;
-
 export interface BaseEntry {
   id: string;
   description: string;
@@ -32,34 +38,34 @@ export interface BaseEntry {
   diagnosisCodes?: Array<Diagnosis["code"]>;
 }
 
+export type NonSensitivePatient = Omit<Patient, "ssn">;
+
+export type NewPatient = Omit<Patient, "id">;
+
+// Define special omit for unions
+type UnionOmit<T, K extends string | number | symbol> = T extends unknown
+  ? Omit<T, K>
+  : never;
+// Define Entry without the 'id' property
+export type NewEntry = UnionOmit<Entry, "id">;
+
 export enum HealthCheckRating {
   "Healthy" = 0,
   "LowRisk" = 1,
   "HighRisk" = 2,
   "CriticalRisk" = 3,
 }
-
-interface HealthCheckEntry extends BaseEntry {
+export interface HealthCheckEntry extends BaseEntry {
   type: "HealthCheck";
   healthCheckRating: HealthCheckRating;
 }
 
-interface Discharge {
-  date: string;
-  criteria: string;
-}
-
-interface SickLeave {
-  startDate: string;
-  endDate: string;
-}
-
-interface HospitalEntry extends BaseEntry {
+export interface HospitalEntry extends BaseEntry {
   type: "Hospital";
   discharge: Discharge;
 }
 
-interface OccupationalHealthcareEntry extends BaseEntry {
+export interface OccupationalHealthcareEntry extends BaseEntry {
   type: "OccupationalHealthcare";
   employerName: string;
   sickLeave?: SickLeave;
@@ -70,3 +76,21 @@ export type Entry =
   | HospitalEntry
   | OccupationalHealthcareEntry
   | HealthCheckEntry;
+
+export type Action =
+  | {
+      type: "SET_PATIENT_DETAIL";
+      payload: Patient;
+    }
+  | {
+      type: "ADD_PATIENT";
+      payload: Patient;
+    }
+  | {
+      type: "SET_DIAGNOSIS_LIST";
+      payload: Diagnosis[];
+    }
+  | {
+      type: "SET_PATIENT_LIST";
+      payload: Patient[];
+    };
