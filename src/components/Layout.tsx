@@ -6,7 +6,7 @@ import { Container } from "@mui/material";
 export default function Layout() {
   return (
     <Container maxWidth="md">
-      <Header />
+      <Header title="Patientor" />
       <main>
         <Outlet />
       </main>

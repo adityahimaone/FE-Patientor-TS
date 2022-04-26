@@ -9,6 +9,9 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Button from "@mui/material/Button";
+import { apiBaseUrl } from "../constant";
+import { PatientFormValues } from "../components/AddPatientModal/AddPatientForm";
+import AddPatientModal from "../components/AddPatientModal/AddPatientModal";
 
 export default function Patients() {
   const [{ patients }, dispatch] = useStateValue();
@@ -23,26 +26,36 @@ export default function Patients() {
     setError(undefined);
   };
 
-  // const submiNewPatient = async (values: PatientFormValues) => {
-  //   try {
-  //     const { data: newPatient } = await axios.post(
-  //       "http://localhost:3001/patients",
-  //       { ...values, entries: [] }
-  //     );
-  //   } catch (error) {}
-  // };
+  const fetchPatientList = async () => {
+    try {
+      const { data: patientList } = await axios.get<Patient[]>(
+        `${apiBaseUrl}/patients`
+      );
+      dispatch(setPatientList(patientList));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const submitNewPatient = async (values: PatientFormValues) => {
+    try {
+      const { data: newPatient } = await axios.post<Patient>(
+        `${apiBaseUrl}/patients`,
+        values
+      );
+      dispatch({ type: "ADD_PATIENT", payload: newPatient });
+      closeModal();
+    } catch (error: unknown) {
+      let errorMessage = "Something went wrong.";
+      if (axios.isAxiosError(error) && error.response) {
+        console.error(error.response.data);
+        errorMessage = error.response.data.error;
+      }
+      setError(errorMessage);
+    }
+  };
 
   useEffect(() => {
-    const fetchPatientList = async () => {
-      try {
-        const { data: patientList } = await axios.get<Patient[]>(
-          `http://localhost:3001/api/patients`
-        );
-        dispatch(setPatientList(patientList));
-      } catch (error) {
-        console.error(error);
-      }
-    };
     fetchPatientList();
   }, []);
 
@@ -80,6 +93,13 @@ export default function Patients() {
             </TableBody>
           </Table>
         </TableContainer>
+        <AddPatientModal
+          modalOpen={modalOpen}
+          onSubmit={submitNewPatient}
+          error={error}
+          onClose={closeModal}
+        />
+        <Button onClick={() => openModal()}>Add New Patient</Button>
       </div>
     </div>
   );

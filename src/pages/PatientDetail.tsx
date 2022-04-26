@@ -9,6 +9,7 @@ import Card from "@mui/material/Card";
 import CardActions from "@mui/material/CardActions";
 import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
+import { apiBaseUrl } from "../constant";
 
 export function PatientDetail() {
   const { id } = useParams<{ id: string }>();
@@ -19,7 +20,7 @@ export function PatientDetail() {
       console.log(id);
       if (id && id !== patient.id) {
         const { data: patientDetail } = await axios.get<Patient>(
-          `http://localhost:3001/api/patients/${id}`
+          `${apiBaseUrl}/patients/${id}`
         );
         console.log(patientDetail, "patientDetail");
         dispatch(setPatientDetail(patientDetail));
@@ -33,7 +34,7 @@ export function PatientDetail() {
     try {
       if (diagnosis.length === 0) {
         const { data: diagnosisList } = await axios.get<Diagnosis[]>(
-          `http://localhost:3001/api/diagnoses`
+          `${apiBaseUrl}/diagnoses`
         );
         dispatch(setDiagnosisList(diagnosisList));
       }
@@ -44,7 +45,6 @@ export function PatientDetail() {
 
   useEffect(() => {
     fetchPatientDetail();
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     fetchDiagnosis();
   }, [id]);
 
@@ -78,7 +78,7 @@ export function PatientDetail() {
               </Typography>
               {patient.entries?.map((entry) => (
                 <div key={entry.id}>
-                  <Card sx={{ padding: 1 }}>
+                  <Card sx={{ padding: 0.5 }}>
                     <EntryDetails entry={entry} />
                   </Card>
                 </div>
@@ -92,7 +92,7 @@ export function PatientDetail() {
   );
 }
 
-const EntryDetails: React.FC<{ entry: Entry }> = ({ entry }) => {
+const EntryDetails = ({ entry }: { entry: Entry }) => {
   switch (entry.type) {
     case "HealthCheck":
       return <HealthCheckEntryField entry={entry} />;
@@ -105,9 +105,7 @@ const EntryDetails: React.FC<{ entry: Entry }> = ({ entry }) => {
   }
 };
 
-const HealthCheckEntryField: React.FC<{ entry: HealthCheckEntry }> = ({
-  entry,
-}) => {
+const HealthCheckEntryField = ({ entry }: { entry: HealthCheckEntry }) => {
   const [{ diagnosis }] = useStateValue();
   const diagnosisCodes = entry.diagnosisCodes ? entry.diagnosisCodes : [];
   return (
@@ -127,7 +125,7 @@ const HealthCheckEntryField: React.FC<{ entry: HealthCheckEntry }> = ({
   );
 };
 
-const HospitalEntry: React.FC<{ entry: Entry }> = ({ entry }) => {
+const HospitalEntry = ({ entry }: { entry: Entry }) => {
   const [{ diagnosis }] = useStateValue();
   return (
     <div>
@@ -155,7 +153,7 @@ const HospitalEntry: React.FC<{ entry: Entry }> = ({ entry }) => {
   );
 };
 
-const OccupationalHealthcareEntry: React.FC<{ entry: Entry }> = ({ entry }) => {
+const OccupationalHealthcareEntry = ({ entry }: { entry: Entry }) => {
   const [{ diagnosis }] = useStateValue();
   return (
     <div>
